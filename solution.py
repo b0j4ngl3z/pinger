@@ -116,9 +116,9 @@ def ping(host, timeout=1):
 
     # Send ping requests to a server separated by approximately one second
     delays = []
-    testCount = 4
+    baseCount = 4
     goodPingCount = 0
-    for i in range(0, testCount):  # Four pings will be sent (loop runs for i=0, 1, 2, 3)
+    for i in range(0, baseCount):  # Four pings will be sent (loop runs for i=0, 1, 2, 3)
         delay = doOnePing(dest, timeout)
 
         if delay > 0: goodPingCount += 1
@@ -126,9 +126,9 @@ def ping(host, timeout=1):
         delays.append(delay)
         time.sleep(1)  # one second
 
-    packetLoss = round(((1 - (goodPingCount / testCount)) * 100), 1)
+    packetLoss = round(((1 - (goodPingCount / baseCount)) * 100), 1)
     print("\n--- " + dest + " ping statistics ---")
-    print(str(testCount) + " packets transmitted, " + str(goodPingCount) + " packets received, " + str(packetLoss) + "% packet loss")
+    print(str(baseCount) + " packets transmitted, " + str(goodPingCount) + " packets received, " + str(packetLoss) + "% packet loss")
 
 
     # Add something here to collect the delays of each ping in a list so you can calculate vars after your ping
@@ -155,7 +155,7 @@ def ping(host, timeout=1):
 
 
 if __name__ == '__main__':
-    dest0 = "74.6.231.21"
+    dest0 = "74.6.143.26"
     dest1 = "no.no.e"
     dest2 = "google.co.il"
     vars = ping(dest0)
