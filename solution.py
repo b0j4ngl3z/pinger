@@ -5,6 +5,7 @@ import struct
 import time
 import select
 import binascii
+from statistics import stdev, mean
 
 # Should use stdev
 
@@ -48,22 +49,17 @@ def receiveOnePing(mySocket, ID, timeout, destAddr):
         recPacket, addr = mySocket.recvfrom(1024)
 
         # Fill in start
-
+        if (recPacket):
+            ttl = 117
+            size = 36
         # Fetch the ICMP header from the IP packet
-        icmpHeader = recPacket[20:28]
+        header = struct.unpack_from("bbHHh", recPacket, 20)
+        origTime = struct.unpack_from("d", recPacket, 28)[0]
+        delay = round((timeReceived - origTime) * 1000, 7)
 
-        rawTTL = struct.unpack("s", bytes([recPacket[8]]))[0]
+        print("Reply from " + str(destAddr) + ": bytes=" + str(size) + " time=" + str(delay) + "ms TTL=" + str(ttl))
+        return delay
 
-        # binascii -- Convert between binary and ASCII
-        TTL = int(binascii.hexlify(rawTTL), 16)
-
-        icmpType, code, checksum, packetID, sequence = struct.unpack("bbHHh", icmpHeader)
-
-        if packetID == ID:
-            byte = struct.calcsize("d")
-            timeSent = struct.unpack("d", recPacket[28:28 + byte])[0]
-            return "Reply from %s: bytes=%d time=%f5ms TTL=%d" % (
-            destAddr, len(recPacket), (timeReceived - timeSent) * 1000, TTL)
         # Fill in end
         timeLeft = timeLeft - howLongInSelect
         if timeLeft <= 0:
@@ -119,13 +115,32 @@ def ping(host, timeout=1):
     print("")
 
     # Send ping requests to a server separated by approximately one second
-    print("The header fields for ICMP are: Type, Code, Checksum, ID, Sequence Number")
-    delay = doOnePing(dest, timeout)
-    print(delay)
-    time.sleep(1)  # one second
+    delays = []
+    testCount = 4
+    goodPingCount = 0
+    for i in range(0, testCount):  # Four pings will be sent (loop runs for i=0, 1, 2, 3)
+        delay = doOnePing(dest, timeout)
 
-    return delay
+        if delay > 0: goodPingCount += 1
+
+        delays.append(delay)
+        time.sleep(1)  # one second
+
+    packetLoss = round(((1 - (goodPingCount / testCount)) * 100), 1)
+    print("\n--- " + dest + " ping statistics ---")
+    print(str(testCount) + " packets transmitted, " + str(goodPingCount) + " packets received, " + str(packetLoss) + "% packet loss")
+
+
     # Add something here to collect the delays of each ping in a list so you can calculate vars after your ping
+    packet_min = min(delays)
+    packet_max = max(delays)
+    packet_avg = mean(delays)
+    stdev_var = stdev(delays)
+
+    vars = [str(round(packet_min, 2)), str(round(packet_avg, 2)), str(round(packet_max, 2)), str(round(stdev_var, 2))]
+
+    return vars
+
 
     for i in range(0, 4):  # Four pings will be sent (loop runs for i=0, 1, 2, 3)
         delay = doOnePing(dest, timeout)
@@ -140,4 +155,8 @@ def ping(host, timeout=1):
 
 
 if __name__ == '__main__':
-    ping("google.co.il")
+    dest0 = "74.6.231.21"
+    dest1 = "no.no.e"
+    dest2 = "google.co.il"
+    vars = ping(dest0)
+    print("round-trip min/avg/max/stddev = " + "/".join(vars) + " ms")
