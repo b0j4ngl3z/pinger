@@ -119,10 +119,11 @@ def ping(host, timeout=1):
     print("")
 
     # Send ping requests to a server separated by approximately one second
-    while True:
-        delay = doOnePing(dest, timeout)
-        print(delay)
-        time.sleep(1)  # one second
+    print("The header fields for ICMP are: Type, Code, Checksum, ID, Sequence Number")
+    delay = doOnePing(dest, timeout)
+    print(delay)
+    time.sleep(1)  # one second
+
     return delay
     # Add something here to collect the delays of each ping in a list so you can calculate vars after your ping
 
@@ -132,6 +133,7 @@ def ping(host, timeout=1):
         time.sleep(1)  # one second
 
     # You should have the values of delay for each ping here; fill in calculation for packet_min, packet_avg, packet_max, and stdev
+
     # vars = [str(round(packet_min, 8)), str(round(packet_avg, 8)), str(round(packet_max, 8)),str(round(stdev(stdev_var), 8))]
 
     return vars
